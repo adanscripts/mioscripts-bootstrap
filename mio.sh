@@ -31,25 +31,17 @@ mio() {
 
     if [[ -z $grupo ]]; then
         echo "Uso: mio <grupo> <verbo> [args]"
+        echo "     mio sync"
         return 1
     fi
 
-    case $grupo in
-        sync)
-            pushd $MIO_REPO > /dev/null
-            git pull origin main
-            popd > /dev/null
-            echo "✓ Repo sincronizado"
-            return 0
-            ;;
-        list)
-            echo "Grupos disponibles:"
-            for dir in $MIO_REPO/*/; do
-                echo "  $(basename $dir)"
-            done
-            return 0
-            ;;
-    esac
+    if [[ $grupo == "sync" ]]; then
+        pushd $MIO_REPO > /dev/null
+        git pull origin main
+        popd > /dev/null
+        echo "✓ Repo sincronizado"
+        return 0
+    fi
 
     if [[ ! -d $MIO_REPO/$grupo ]]; then
         echo "Error: grupo '$grupo' no existe en el repo"
@@ -57,21 +49,16 @@ mio() {
     fi
 
     if [[ -z $verbo ]]; then
-        echo "Verbos en $grupo:"
-        for script in $MIO_REPO/$grupo/*.sh $MIO_REPO/$grupo/*.py; do
-            [[ ! -f $script ]] && continue
-            local filename=$(basename $script)
-            local v="${filename%.*}"
-            [[ $v == "load" ]] && continue
-            echo "  $v"
-        done
-        return 0
+        echo "Error: falta el verbo"
+        echo "  → mio sys list $grupo"
+        return 1
     fi
 
     local script=$(ls $MIO_REPO/$grupo/$verbo.sh $MIO_REPO/$grupo/$verbo.py 2>/dev/null | head -1)
 
     if [[ -z $script ]]; then
         echo "Error: verbo '$verbo' no encontrado en '$grupo'"
+        echo "  → mio sys list $grupo"
         return 1
     fi
 
