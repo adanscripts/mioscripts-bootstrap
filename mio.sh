@@ -25,26 +25,64 @@ _mio_install() {
 }
 
 mio() {
-    local action=$1
-    local grupo=$2
+    local grupo=$1
+    local verbo=$2
+    shift 2
 
-    case $action in
-        load)
-            if [[ ! -d $MIO_REPO/$grupo ]]; then
-                echo "Error: grupo '$grupo' no existe en el repo"
-                return 1
-            fi
-            source $MIO_REPO/$grupo/load.sh
-            ;;
-        clear)
-            echo "✓ No hay caché, el repo es la fuente de verdad"
-            ;;
+    if [[ -z $grupo ]]; then
+        echo "Uso: mio <grupo> <verbo> [args]"
+        return 1
+    fi
+
+    # Comandos internos de mio
+    case $grupo in
         sync)
-            cd $MIO_REPO
+            pushd $MIO_REPO > /dev/null
             git pull origin main
-            cd -
+            popd > /dev/null
             echo "✓ Repo sincronizado"
+            return 0
             ;;
+        list)
+            echo "Grupos disponibles:"
+            for dir in $MIO_REPO/*/; do
+                echo "  $(basename $dir)"
+            done
+            return 0
+            ;;
+    esac
+
+    if [[ ! -d $MIO_REPO/$grupo ]]; then
+        echo "Error: grupo '$grupo' no existe en el repo"
+        return 1
+    fi
+
+    if [[ -z $verbo ]]; then
+        # Lista verbos del grupo
+        echo "Verbos en $grupo:"
+        for script in $MIO_REPO/$grupo/*.sh $MIO_REPO/$grupo/*.py; do
+            [[ ! -f $script ]] && continue
+            local filename=$(basename $script)
+            local v="${filename%.*}"
+            [[ $v == "load" ]] && continue
+            echo "  $v"
+        done
+        return 0
+    fi
+
+    # Busca el script del verbo
+    local script=$(ls $MIO_REPO/$grupo/$verbo.sh $MIO_REPO/$grupo/$verbo.py 2>/dev/null | head -1)
+
+    if [[ -z $script ]]; then
+        echo "Error: verbo '$verbo' no encontrado en '$grupo'"
+        return 1
+    fi
+
+    # Ejecuta el verbo en un subshell con MIO_REPO disponible
+    local ext="${script##*.}"
+    case $ext in
+        sh) bash $script "$@" ;;
+        py) python3 $script "$@" ;;
     esac
 }
 
