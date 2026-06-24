@@ -77,7 +77,14 @@ mio() {
 
     local ext="${script##*.}"
     case $ext in
-        sh) (source $script && $grupo.$verbo "$@") ;;
+        sh)
+            (
+                source $script
+                if declare -f $grupo.$verbo > /dev/null; then
+                    $grupo.$verbo "$@"
+                fi
+            )
+            ;;
         py) python3 $script "$@" ;;
     esac
 }
