@@ -1,20 +1,24 @@
 #!/bin/bash
 
-MIO_CACHE=~/.mio/cache
-MIO_USER_EMAIL="adan@gmail.adan"
+MIO_REPO=~/.mio/repo
+MIO_USER_EMAIL="adan@adan.adan"
 MIO_USER_NAME="adan"
 
 _mio_install() {
-    mkdir -p $MIO_CACHE
-    mkdir -p ~/bin
+    mkdir -p ~/.mio
 
     git config --global user.email "$MIO_USER_EMAIL"
     git config --global user.name "$MIO_USER_NAME"
-    git config --global --add safe.directory "$MIO_CACHE"
 
     read -s -p "GitHub token: " MIO_TOKEN
     echo
     export MIO_REMOTE="https://${MIO_TOKEN}@github.com/adanscripts/mioscripts"
+
+    if [[ ! -d $MIO_REPO ]]; then
+        echo "→ Clonando repo..."
+        git clone $MIO_REMOTE $MIO_REPO
+        git config --global --add safe.directory $MIO_REPO
+    fi
 
     touch ~/.mio/.installed
     echo "✓ mio instalado"
@@ -26,20 +30,20 @@ mio() {
 
     case $action in
         load)
-            local cache=$MIO_CACHE/$grupo
-            if [[ ! -d $cache ]]; then
-                echo "→ Descargando $grupo..."
-                # Clona repo completo en temporal y copia solo el grupo
-                local tmp=$(mktemp -d)
-                git clone --depth=1 $MIO_REMOTE $tmp 2>/dev/null
-                cp -r $tmp/$grupo $cache
-                rm -rf $tmp
+            if [[ ! -d $MIO_REPO/$grupo ]]; then
+                echo "Error: grupo '$grupo' no existe en el repo"
+                return 1
             fi
-            source $cache/load.sh
+            source $MIO_REPO/$grupo/load.sh
             ;;
         clear)
-            rm -rf $MIO_CACHE/$grupo
-            echo "✓ Caché limpiada: $grupo"
+            echo "✓ No hay caché, el repo es la fuente de verdad"
+            ;;
+        sync)
+            cd $MIO_REPO
+            git pull origin main
+            cd -
+            echo "✓ Repo sincronizado"
             ;;
     esac
 }
