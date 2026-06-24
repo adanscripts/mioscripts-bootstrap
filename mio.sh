@@ -34,7 +34,6 @@ mio() {
         return 1
     fi
 
-    # Comandos internos de mio
     case $grupo in
         sync)
             pushd $MIO_REPO > /dev/null
@@ -58,7 +57,6 @@ mio() {
     fi
 
     if [[ -z $verbo ]]; then
-        # Lista verbos del grupo
         echo "Verbos en $grupo:"
         for script in $MIO_REPO/$grupo/*.sh $MIO_REPO/$grupo/*.py; do
             [[ ! -f $script ]] && continue
@@ -70,7 +68,6 @@ mio() {
         return 0
     fi
 
-    # Busca el script del verbo
     local script=$(ls $MIO_REPO/$grupo/$verbo.sh $MIO_REPO/$grupo/$verbo.py 2>/dev/null | head -1)
 
     if [[ -z $script ]]; then
@@ -78,10 +75,9 @@ mio() {
         return 1
     fi
 
-    # Ejecuta el verbo en un subshell con MIO_REPO disponible
     local ext="${script##*.}"
     case $ext in
-        sh) bash $script "$@" ;;
+        sh) (source $script && $grupo.$verbo "$@") ;;
         py) python3 $script "$@" ;;
     esac
 }
