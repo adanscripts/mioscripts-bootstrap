@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MIO_CACHE=~/.mio/cache
-MIO_USER_EMAIL="tu@email.com"
+MIO_USER_EMAIL="adan@gmail.adan"
 MIO_USER_NAME="adan"
 
 _mio_install() {
