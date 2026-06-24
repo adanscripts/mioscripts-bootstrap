@@ -1,8 +1,8 @@
 #!/bin/bash
 
-MIO_REPO=~/.mio/repo
-MIO_USER_EMAIL="adan@adan.adan"
-MIO_USER_NAME="adan"
+export MIO_REPO=~/.mio/repo
+export MIO_USER_EMAIL="adan@adan.adan"
+export MIO_USER_NAME="adan"
 
 _mio_install() {
     mkdir -p ~/.mio
