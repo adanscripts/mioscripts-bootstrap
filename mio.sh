@@ -55,23 +55,20 @@ mio() {
     fi
 
     local script=$MIO_REPO/$grupo/$verbo.sh
-
     if [[ ! -f $script ]]; then
         echo "Error: verbo '$verbo' no encontrado en '$grupo'"
         echo "  → mio sys list $grupo"
         return 1
     fi
 
-    # Lee runtime del wrapper, si no del group.toml, si no bash
-    local runtime=$(grep "^runtime=" $script | cut -d= -f2)
-    if [[ -z $runtime ]]; then
-        runtime=$(grep "^runtime=" $MIO_REPO/$grupo/group.toml 2>/dev/null | cut -d= -f2)
-    fi
-    [[ -z $runtime ]] && runtime="bash"
+    # Detecta extensión del script original para elegir runtime
+    local original=$(ls $MIO_REPO/$grupo/_$verbo.* 2>/dev/null | head -1)
+    local ext="sh"
+    [[ -n $original ]] && ext="${original##*.}"
 
-    local runner=$MIO_REPO/runtimes/$runtime/run.sh
+    local runner=$MIO_REPO/runtimes/$ext/run.sh
     if [[ ! -f $runner ]]; then
-        echo "Error: runtime '$runtime' no encontrado"
+        echo "Error: runtime '$ext' no encontrado"
         return 1
     fi
 
