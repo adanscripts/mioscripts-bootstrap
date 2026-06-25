@@ -61,18 +61,8 @@ mio() {
         return 1
     fi
 
-    # Detecta extensión del script original para elegir runtime
-    local original=$(ls $MIO_REPO/$grupo/_$verbo.* 2>/dev/null | head -1)
-    local ext="sh"
-    [[ -n $original ]] && ext="${original##*.}"
-
-    local runner=$MIO_REPO/runtimes/$ext/run.sh
-    if [[ ! -f $runner ]]; then
-        echo "Error: runtime '$ext' no encontrado"
-        return 1
-    fi
-
-    bash $runner $grupo $verbo "$@"
+    # Siempre usa el runner sh — el wrapper gestiona el runtime internamente
+    bash $MIO_REPO/runtimes/sh/run.sh $grupo $verbo "$@"
 }
 
 [[ ! -f ~/.mio/.installed ]] && _mio_install
