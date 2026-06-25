@@ -62,11 +62,13 @@ mio() {
         return 1
     fi
 
-    # Lee runtime del wrapper, por defecto bash
+    # Lee runtime del wrapper, si no del group.toml, si no bash
     local runtime=$(grep "^runtime=" $script | cut -d= -f2)
+    if [[ -z $runtime ]]; then
+        runtime=$(grep "^runtime=" $MIO_REPO/$grupo/group.toml 2>/dev/null | cut -d= -f2)
+    fi
     [[ -z $runtime ]] && runtime="bash"
 
-    # Delega en el runtime
     local runner=$MIO_REPO/runtimes/$runtime/run.sh
     if [[ ! -f $runner ]]; then
         echo "Error: runtime '$runtime' no encontrado"
