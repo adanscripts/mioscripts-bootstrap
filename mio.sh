@@ -54,26 +54,26 @@ mio() {
         return 1
     fi
 
-    local script=$(ls $MIO_REPO/$grupo/$verbo.sh $MIO_REPO/$grupo/$verbo.py 2>/dev/null | head -1)
+    local script=$MIO_REPO/$grupo/$verbo.sh
 
-    if [[ -z $script ]]; then
+    if [[ ! -f $script ]]; then
         echo "Error: verbo '$verbo' no encontrado en '$grupo'"
         echo "  → mio sys list $grupo"
         return 1
     fi
 
-    local ext="${script##*.}"
-    case $ext in
-        sh)
-            (
-                source $script
-                if declare -f $grupo.$verbo > /dev/null; then
-                    $grupo.$verbo "$@"
-                fi
-            )
-            ;;
-        py) python3 $script "$@" ;;
-    esac
+    # Lee runtime del wrapper, por defecto bash
+    local runtime=$(grep "^runtime=" $script | cut -d= -f2)
+    [[ -z $runtime ]] && runtime="bash"
+
+    # Delega en el runtime
+    local runner=$MIO_REPO/runtimes/$runtime/run.sh
+    if [[ ! -f $runner ]]; then
+        echo "Error: runtime '$runtime' no encontrado"
+        return 1
+    fi
+
+    bash $runner $grupo $verbo "$@"
 }
 
 [[ ! -f ~/.mio/.installed ]] && _mio_install
